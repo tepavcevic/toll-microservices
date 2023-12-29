@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/tepavcevic/toll-microservices/types"
 )
 
 const (
@@ -14,13 +15,7 @@ const (
 	wsEndpoint   = "ws://127.0.0.1:30000/ws"
 )
 
-type OBUData struct {
-	OBUID int     `json:"obuID"`
-	Lat   float64 `json:"lat"`
-	Long  float64 `json:"long"`
-}
-
-func sendOBUData(conn *websocket.Conn, data OBUData) error {
+func sendOBUData(conn *websocket.Conn, data types.OBUData) error {
 	return conn.WriteJSON(data)
 }
 
@@ -64,7 +59,7 @@ func main() {
 	for _, id := range obuIDS {
 		time.Sleep(time.Second * sendInterval)
 		location := genLocation()
-		data := OBUData{
+		data := types.OBUData{
 			OBUID: id,
 			Lat:   location.Lat,
 			Long:  location.Long,
