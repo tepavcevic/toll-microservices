@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	sendInterval = 60
+	sendInterval = 5
 	wsEndpoint   = "ws://127.0.0.1:30000/ws"
 )
 
