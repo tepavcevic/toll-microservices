@@ -9,8 +9,6 @@ import (
 	"github.com/tepavcevic/toll-microservices/types"
 )
 
-var kafkaTopic = "obudata"
-
 func main() {
 	dataReceiver, err := newDataReceiver()
 	if err != nil {
@@ -29,14 +27,17 @@ type DataReceiver struct {
 }
 
 func newDataReceiver() (*DataReceiver, error) {
-	p, err := NewKafkaProducer()
+	kafkaTopic := "obudata"
+
+	p, err := NewKafkaProducer(kafkaTopic)
 	if err != nil {
 		return nil, err
 	}
+	l := NewLogMiddleware(p)
 
 	return &DataReceiver{
 		msgch: make(chan types.OBUData, 128),
-		prod:  p,
+		prod:  l,
 	}, nil
 }
 
