@@ -55,6 +55,7 @@ func main() {
 	obuIDS := genOBUIDS(20)
 
 	conn, _, _ := websocket.DefaultDialer.Dial(wsEndpoint, nil)
+	defer conn.Close()
 
 	for _, id := range obuIDS {
 		time.Sleep(time.Second * sendInterval)
