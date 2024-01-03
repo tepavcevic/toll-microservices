@@ -66,7 +66,7 @@ func (dr *DataReceiver) wsReceiveLoop() {
 
 		if err := dr.conn.ReadJSON(&payload); err != nil {
 			log.Println("read error:", err)
-			continue
+			break
 		}
 		fmt.Println("received data:", payload)
 		// dr.msgch <- payload
