@@ -26,5 +26,6 @@ func (lm *LogMiddleware) ProduceData(data types.OBUData) error {
 			"took":  time.Since(start),
 		}).Info("producing to kafka")
 	}(time.Now())
+
 	return lm.next.ProduceData(data)
 }
