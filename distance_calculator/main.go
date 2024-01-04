@@ -11,7 +11,7 @@ type DistanceCalculator struct {
 var kafkaTopic = "obudata"
 
 func main() {
-	distCalc := NewCalculatorService()
+	distCalc := NewLogMiddleware(NewCalculatorService())
 
 	kafkaConsumer, err := NewKafkaConsumer(kafkaTopic, distCalc)
 	if err != nil {
