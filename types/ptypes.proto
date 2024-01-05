@@ -2,7 +2,15 @@ syntax = "proto3";
 
 option go_package = "github.com/tepavcevic/toll-microservices/types";
 
-message Test {
-    int32 someint = 1;
-    int32 someotherint = 2;
+
+message None {};
+
+message AggregateDistanceRequest {
+    int32 ObuID = 1;
+    double Value = 2;
+    int64 Unix = 3;
+};
+
+service DistanceAggregator {
+    rpc AggregateDistance (AggregateDistanceRequest) returns (None);
 }
