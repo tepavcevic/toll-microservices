@@ -23,7 +23,7 @@ func NewCalculatorService() *CalculatorService {
 func (s *CalculatorService) CalculateDistance(data types.OBUData) (float64, error) {
 	distance := 0.0
 	if len(s.prevPoint) > 0 {
-		distance = calcCoordinatesDistance(s.prevPoint[0], s.prevPoint[1], data.Lat, data.Long)
+		distance = calcCoordinatesDistance(s.prevPoint[0], data.Lat, s.prevPoint[1], data.Long)
 	}
 	s.prevPoint = []float64{data.Lat, data.Long}
 
