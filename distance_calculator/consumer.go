@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/sirupsen/logrus"
+	"github.com/tepavcevic/toll-microservices/aggregator/client"
 	"github.com/tepavcevic/toll-microservices/types"
 )
 
@@ -16,9 +18,10 @@ type KafkaConsumer struct {
 	consumer    *kafka.Consumer
 	isRunning   bool
 	calcService CalculatorServicer
+	aggClient   *client.Client
 }
 
-func NewKafkaConsumer(topic string, calcService CalculatorServicer) (*KafkaConsumer, error) {
+func NewKafkaConsumer(topic string, calcService CalculatorServicer, client *client.Client) (*KafkaConsumer, error) {
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers": "localhost",
 		"group.id":          "myGroup",
@@ -33,6 +36,7 @@ func NewKafkaConsumer(topic string, calcService CalculatorServicer) (*KafkaConsu
 	return &KafkaConsumer{
 		consumer:    c,
 		calcService: calcService,
+		aggClient:   client,
 	}, nil
 }
 
@@ -48,6 +52,9 @@ func (kc *KafkaConsumer) ConsumeData(data types.OBUData) error {
 }
 
 func (kc *KafkaConsumer) readMessageLoop() {
+	var data types.OBUData
+	var req types.Distance
+
 	for kc.isRunning {
 		msg, err := kc.consumer.ReadMessage(-1)
 		if err != nil {
@@ -55,15 +62,24 @@ func (kc *KafkaConsumer) readMessageLoop() {
 			continue
 		}
 
-		var data types.OBUData
 		if err := json.Unmarshal(msg.Value, &data); err != nil {
 			logrus.Errorf("json serialization error: %v (%v)\n", err, msg)
 			continue
 		}
 
-		_, err = kc.calcService.CalculateDistance(data)
+		distance, err := kc.calcService.CalculateDistance(data)
 		if err != nil {
 			logrus.Errorf("error calculating distance: %v (%v)\n", err, msg)
+			continue
+		}
+
+		req.Value = distance
+		req.Unix = time.Now().Unix()
+		req.OBUID = data.OBUID
+
+		err = kc.aggClient.AggregateInvoice(req)
+		if err != nil {
+			logrus.Errorf("error aggregating distance invoice: %v", err)
 			continue
 		}
 	}
