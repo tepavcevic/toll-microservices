@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/tepavcevic/toll-microservices/types"
 )
@@ -24,6 +25,8 @@ func makeHTTPTransport(listenAddr string, svc Aggregator) {
 	fmt.Println("Aggregator service running on port", listenAddr)
 
 	http.HandleFunc("/aggregate", handleAggregate(svc))
+	http.HandleFunc("/invoice", handleGetInvoice(svc))
+
 	log.Fatal(http.ListenAndServe(listenAddr, nil))
 }
 
@@ -40,6 +43,28 @@ func handleAggregate(svc Aggregator) http.HandlerFunc {
 			return
 		}
 		writeJSON(w, http.StatusOK, dist)
+	}
+}
+
+func handleGetInvoice(svc Aggregator) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		obuID := r.URL.Query().Get("obu")
+		if obuID == "" {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "missing obuID"})
+			return
+		}
+		obuIDInt, err := strconv.Atoi(obuID)
+		if err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "obuID has to be integer"})
+			return
+		}
+
+		invoice, err := svc.GetInvoice(obuIDInt)
+		if err != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return
+		}
+		writeJSON(w, http.StatusOK, invoice)
 	}
 }
 
