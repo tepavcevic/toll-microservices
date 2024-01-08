@@ -19,89 +19,89 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	DistanceAggregator_AggregateDistance_FullMethodName = "/DistanceAggregator/AggregateDistance"
+	Aggregator_Aggregate_FullMethodName = "/Aggregator/Aggregate"
 )
 
-// DistanceAggregatorClient is the client API for DistanceAggregator service.
+// AggregatorClient is the client API for Aggregator service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type DistanceAggregatorClient interface {
-	AggregateDistance(ctx context.Context, in *AggregateDistanceRequest, opts ...grpc.CallOption) (*None, error)
+type AggregatorClient interface {
+	Aggregate(ctx context.Context, in *AggregateRequest, opts ...grpc.CallOption) (*None, error)
 }
 
-type distanceAggregatorClient struct {
+type aggregatorClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewDistanceAggregatorClient(cc grpc.ClientConnInterface) DistanceAggregatorClient {
-	return &distanceAggregatorClient{cc}
+func NewAggregatorClient(cc grpc.ClientConnInterface) AggregatorClient {
+	return &aggregatorClient{cc}
 }
 
-func (c *distanceAggregatorClient) AggregateDistance(ctx context.Context, in *AggregateDistanceRequest, opts ...grpc.CallOption) (*None, error) {
+func (c *aggregatorClient) Aggregate(ctx context.Context, in *AggregateRequest, opts ...grpc.CallOption) (*None, error) {
 	out := new(None)
-	err := c.cc.Invoke(ctx, DistanceAggregator_AggregateDistance_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Aggregator_Aggregate_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// DistanceAggregatorServer is the server API for DistanceAggregator service.
-// All implementations must embed UnimplementedDistanceAggregatorServer
+// AggregatorServer is the server API for Aggregator service.
+// All implementations must embed UnimplementedAggregatorServer
 // for forward compatibility
-type DistanceAggregatorServer interface {
-	AggregateDistance(context.Context, *AggregateDistanceRequest) (*None, error)
-	mustEmbedUnimplementedDistanceAggregatorServer()
+type AggregatorServer interface {
+	Aggregate(context.Context, *AggregateRequest) (*None, error)
+	mustEmbedUnimplementedAggregatorServer()
 }
 
-// UnimplementedDistanceAggregatorServer must be embedded to have forward compatible implementations.
-type UnimplementedDistanceAggregatorServer struct {
+// UnimplementedAggregatorServer must be embedded to have forward compatible implementations.
+type UnimplementedAggregatorServer struct {
 }
 
-func (UnimplementedDistanceAggregatorServer) AggregateDistance(context.Context, *AggregateDistanceRequest) (*None, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AggregateDistance not implemented")
+func (UnimplementedAggregatorServer) Aggregate(context.Context, *AggregateRequest) (*None, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Aggregate not implemented")
 }
-func (UnimplementedDistanceAggregatorServer) mustEmbedUnimplementedDistanceAggregatorServer() {}
+func (UnimplementedAggregatorServer) mustEmbedUnimplementedAggregatorServer() {}
 
-// UnsafeDistanceAggregatorServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to DistanceAggregatorServer will
+// UnsafeAggregatorServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AggregatorServer will
 // result in compilation errors.
-type UnsafeDistanceAggregatorServer interface {
-	mustEmbedUnimplementedDistanceAggregatorServer()
+type UnsafeAggregatorServer interface {
+	mustEmbedUnimplementedAggregatorServer()
 }
 
-func RegisterDistanceAggregatorServer(s grpc.ServiceRegistrar, srv DistanceAggregatorServer) {
-	s.RegisterService(&DistanceAggregator_ServiceDesc, srv)
+func RegisterAggregatorServer(s grpc.ServiceRegistrar, srv AggregatorServer) {
+	s.RegisterService(&Aggregator_ServiceDesc, srv)
 }
 
-func _DistanceAggregator_AggregateDistance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AggregateDistanceRequest)
+func _Aggregator_Aggregate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AggregateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DistanceAggregatorServer).AggregateDistance(ctx, in)
+		return srv.(AggregatorServer).Aggregate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: DistanceAggregator_AggregateDistance_FullMethodName,
+		FullMethod: Aggregator_Aggregate_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DistanceAggregatorServer).AggregateDistance(ctx, req.(*AggregateDistanceRequest))
+		return srv.(AggregatorServer).Aggregate(ctx, req.(*AggregateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// DistanceAggregator_ServiceDesc is the grpc.ServiceDesc for DistanceAggregator service.
+// Aggregator_ServiceDesc is the grpc.ServiceDesc for Aggregator service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var DistanceAggregator_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "DistanceAggregator",
-	HandlerType: (*DistanceAggregatorServer)(nil),
+var Aggregator_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "Aggregator",
+	HandlerType: (*AggregatorServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "AggregateDistance",
-			Handler:    _DistanceAggregator_AggregateDistance_Handler,
+			MethodName: "Aggregate",
+			Handler:    _Aggregator_Aggregate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
