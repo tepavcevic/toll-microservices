@@ -12,7 +12,7 @@ const (
 )
 
 func main() {
-	aggClient := client.NewClient(aggEndpoint)
+	aggClient := client.NewHTTPClient(aggEndpoint)
 	distCalc := NewLogMiddleware(NewCalculatorService())
 
 	kafkaConsumer, err := NewKafkaConsumer(kafkaTopic, distCalc, aggClient)

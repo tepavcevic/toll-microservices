@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -8,7 +9,9 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/tepavcevic/toll-microservices/aggregator/client"
 	"github.com/tepavcevic/toll-microservices/types"
 	"google.golang.org/grpc"
 )
@@ -21,9 +24,26 @@ func main() {
 	store := NewMemoryStore()
 	svc := NewLogMiddleware(NewInvoiceAggregator(store))
 
-	go makeGRPCTransport(*grpcListenAddr, svc)
+	go func() {
+		log.Fatal(makeGRPCTransport(*grpcListenAddr, svc))
+	}()
 
-	makeHTTPTransport(*httpListenAddr, svc)
+	time.Sleep(time.Second * 2)
+	c, err := client.NewGRPCClient(*grpcListenAddr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	req := types.AggregateRequest{
+		ObuID: 23,
+		Value: 34.655,
+		Unix:  time.Now().Unix(),
+	}
+	_, err = c.Aggregate(context.Background(), &req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Fatal(makeHTTPTransport(*httpListenAddr, svc))
 }
 
 // Makes a TCP listener,
@@ -31,7 +51,7 @@ func main() {
 // registers our gRPC server implementation to the grpc package.
 func makeGRPCTransport(listenAddr string, svc Aggregator) error {
 	fmt.Println("gRPC aggregator service running on port", listenAddr)
-	lis, err := net.Listen("TCP", listenAddr)
+	lis, err := net.Listen("tcp", listenAddr)
 	if err != nil {
 		return err
 	}
@@ -43,13 +63,13 @@ func makeGRPCTransport(listenAddr string, svc Aggregator) error {
 	return server.Serve(lis)
 }
 
-func makeHTTPTransport(listenAddr string, svc Aggregator) {
+func makeHTTPTransport(listenAddr string, svc Aggregator) error {
 	fmt.Println("HTTP aggregator service running on port", listenAddr)
 
 	http.HandleFunc("/aggregate", handleAggregate(svc))
 	http.HandleFunc("/invoice", handleGetInvoice(svc))
 
-	log.Fatal(http.ListenAndServe(listenAddr, nil))
+	return http.ListenAndServe(listenAddr, nil)
 }
 
 func handleAggregate(svc Aggregator) http.HandlerFunc {

@@ -9,17 +9,17 @@ import (
 	"github.com/tepavcevic/toll-microservices/types"
 )
 
-type Client struct {
+type HTTPClient struct {
 	Endpoint string
 }
 
-func NewClient(e string) *Client {
-	return &Client{
+func NewHTTPClient(e string) *HTTPClient {
+	return &HTTPClient{
 		Endpoint: e,
 	}
 }
 
-func (c *Client) AggregateInvoice(distance types.Distance) error {
+func (c *HTTPClient) AggregateInvoice(distance types.Distance) error {
 	b, err := json.Marshal(distance)
 	if err != nil {
 		return err
