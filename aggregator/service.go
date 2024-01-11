@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/tepavcevic/toll-microservices/types"
 )
 
@@ -24,7 +22,6 @@ func NewInvoiceAggregator(store Storer) *InvoiceAggregator {
 }
 
 func (i *InvoiceAggregator) AggregateDistance(distance types.Distance) error {
-	fmt.Println("processing and inserting distance in storage", distance)
 	return i.store.Insert(distance)
 }
 
