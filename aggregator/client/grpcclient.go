@@ -34,5 +34,9 @@ func (c *GRPCClient) Aggregate(ctx context.Context, distance *types.AggregateReq
 }
 
 func (c *GRPCClient) GetInvoice(ctx context.Context, id int) (*types.Invoice, error) {
-	return &types.Invoice{}, nil
+	return &types.Invoice{
+		OBUID:         id,
+		TotalDistance: 1234.33213,
+		TotalAmount:   534658734.432423,
+	}, nil
 }

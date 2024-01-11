@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -9,9 +8,8 @@ import (
 	"net"
 	"net/http"
 	"strconv"
-	"time"
 
-	"github.com/tepavcevic/toll-microservices/aggregator/client"
+	"github.com/sirupsen/logrus"
 	"github.com/tepavcevic/toll-microservices/types"
 	"google.golang.org/grpc"
 )
@@ -27,21 +25,6 @@ func main() {
 	go func() {
 		log.Fatal(makeGRPCTransport(*grpcListenAddr, svc))
 	}()
-
-	time.Sleep(time.Second * 2)
-	c, err := client.NewGRPCClient(*grpcListenAddr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	req := types.AggregateRequest{
-		ObuID: 23,
-		Value: 34.655,
-		Unix:  time.Now().Unix(),
-	}
-	err = c.Aggregate(context.Background(), &req)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	log.Fatal(makeHTTPTransport(*httpListenAddr, svc))
 }
@@ -64,7 +47,7 @@ func makeGRPCTransport(listenAddr string, svc Aggregator) error {
 }
 
 func makeHTTPTransport(listenAddr string, svc Aggregator) error {
-	fmt.Println("HTTP aggregator service running on port", listenAddr)
+	logrus.Infoln("HTTP aggregator service running on port", listenAddr)
 
 	http.HandleFunc("/aggregate", handleAggregate(svc))
 	http.HandleFunc("/invoice", handleGetInvoice(svc))
