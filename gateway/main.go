@@ -3,9 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/tepavcevic/toll-microservices/aggregator/client"
@@ -15,8 +18,13 @@ type apiFunc func(w http.ResponseWriter, r *http.Request) error
 
 func main() {
 	listenAddr := flag.String("listenAddr", ":6000", "gateway HTTP server port")
+	aggregatorServiceAddr := flag.String(
+		"aggregatorServiceAddr",
+		"http://localhost:3500",
+		"aggregator service HTTP address",
+	)
 
-	aggClient := client.NewHTTPClient("http://localhost:3500")
+	aggClient := client.NewHTTPClient(*aggregatorServiceAddr)
 	invHandler := newInvoiceHandler(aggClient)
 
 	http.HandleFunc("/invoice", makeAPIFunc(invHandler.handleGetInvoice))
@@ -36,8 +44,16 @@ func newInvoiceHandler(c client.Client) *InvoiceHandler {
 }
 
 func (h *InvoiceHandler) handleGetInvoice(w http.ResponseWriter, r *http.Request) error {
-	// writeJSON(w, http.StatusOK, map[string]string{"invoice": "some invoice"})
-	inv, err := h.client.GetInvoice(context.Background(), 1704959588)
+	obuID := r.URL.Query().Get("obu")
+	if obuID == "" {
+		return errors.New("missing OBUID")
+	}
+	obuIDInt, err := strconv.Atoi(obuID)
+	if err != nil {
+		return errors.New("OBUID has to be an integer")
+	}
+
+	inv, err := h.client.GetInvoice(context.Background(), obuIDInt)
 	if err != nil {
 		return err
 	}
@@ -54,6 +70,12 @@ func writeJSON(w http.ResponseWriter, code int, data any) error {
 
 func makeAPIFunc(fn apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		defer func(started time.Time) {
+			logrus.WithFields(logrus.Fields{
+				"took": time.Since(started),
+				"uri":  r.RequestURI,
+			}).Info("REQ :: ")
+		}(time.Now())
 		if err := fn(w, r); err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}

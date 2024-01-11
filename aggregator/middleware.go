@@ -20,8 +20,10 @@ func NewLogMiddleware(n Aggregator) *LogMiddleware {
 func (m *LogMiddleware) AggregateDistance(dist types.Distance) (err error) {
 	defer func(started time.Time) {
 		logrus.WithFields(logrus.Fields{
-			"err":  err,
-			"took": time.Since(started),
+			"err":      err,
+			"took":     time.Since(started),
+			"obuID":    dist.OBUID,
+			"distance": dist.Value,
 		}).Info("aggregating distance")
 	}(time.Now())
 

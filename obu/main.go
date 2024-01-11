@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"math"
 	"math/rand"
 	"time"
 
@@ -45,7 +44,7 @@ func genCoord(variant string) float64 {
 func genOBUIDS(n int) []int {
 	ids := make([]int, n)
 	for i := 0; i < n; i++ {
-		ids[i] = rand.Intn(math.MaxInt)
+		ids[i] = rand.Intn(2_147_483_647)
 	}
 
 	return ids
