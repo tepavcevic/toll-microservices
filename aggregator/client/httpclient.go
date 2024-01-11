@@ -39,3 +39,7 @@ func (c *HTTPClient) Aggregate(ctx context.Context, distance *types.AggregateReq
 
 	return nil
 }
+
+func (c *HTTPClient) GetInvoice(ctx context.Context, id int) (*types.Invoice, error) {
+	return &types.Invoice{}, nil
+}
