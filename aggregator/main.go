@@ -38,7 +38,7 @@ func main() {
 		Value: 34.655,
 		Unix:  time.Now().Unix(),
 	}
-	_, err = c.Aggregate(context.Background(), &req)
+	err = c.Aggregate(context.Background(), &req)
 	if err != nil {
 		log.Fatal(err)
 	}
