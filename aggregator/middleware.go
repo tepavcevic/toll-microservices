@@ -3,12 +3,70 @@ package main
 import (
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/sirupsen/logrus"
 	"github.com/tepavcevic/toll-microservices/types"
 )
 
+type MetricsMiddleware struct {
+	next           Aggregator
+	reqCounterAgg  prometheus.Counter
+	reqCounterCalc prometheus.Counter
+	reqLatencyAgg  prometheus.Histogram
+	reqLatencyCalc prometheus.Histogram
+}
+
 type LogMiddleware struct {
 	next Aggregator
+}
+
+func NewMetricsMiddleware(n Aggregator) *MetricsMiddleware {
+	reqCounterAgg := promauto.NewCounter(prometheus.CounterOpts{
+		Namespace: "aggregator_request_counter",
+		Name:      "aggregate",
+	})
+	reqCounterCalc := promauto.NewCounter(prometheus.CounterOpts{
+		Namespace: "calculator_request_counter",
+		Name:      "calculate",
+	})
+	reqLatencyAgg := promauto.NewHistogram(prometheus.HistogramOpts{
+		Namespace: "aggregator_request_latency",
+		Name:      "aggregate",
+		Buckets:   []float64{0.1, 0.5, 1},
+	})
+	reqLatencyCalc := promauto.NewHistogram(prometheus.HistogramOpts{
+		Namespace: "calculator_request_latency",
+		Name:      "calculate",
+		Buckets:   []float64{0.1, 0.5, 1},
+	})
+	return &MetricsMiddleware{
+		next:           n,
+		reqCounterAgg:  reqCounterAgg,
+		reqCounterCalc: reqCounterCalc,
+		reqLatencyAgg:  reqLatencyAgg,
+		reqLatencyCalc: reqLatencyCalc,
+	}
+}
+
+func (m *MetricsMiddleware) AggregateDista(dist types.Distance) (err error) {
+	defer func(started time.Time) {
+		m.reqLatencyAgg.Observe(float64(time.Since(started).Seconds()))
+		m.reqCounterAgg.Inc()
+	}(time.Now())
+
+	err = m.next.AggregateDistance(dist)
+	return err
+}
+
+func (m *MetricsMiddleware) GetInvoice(obuID int) (invoice *types.Invoice, err error) {
+	defer func(started time.Time) {
+		m.reqLatencyCalc.Observe(float64(time.Since(started).Seconds()))
+		m.reqCounterCalc.Inc()
+	}(time.Now())
+
+	invoice, err = m.next.GetInvoice(obuID)
+	return
 }
 
 func NewLogMiddleware(n Aggregator) *LogMiddleware {
