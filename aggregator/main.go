@@ -23,7 +23,7 @@ func main() {
 	store := NewMemoryStore()
 	aggSvc := NewInvoiceAggregator(store)
 	metricsSvc := NewMetricsMiddleware(aggSvc)
-	svc := NewLogMiddleware(metricsSvc.next)
+	svc := NewLogMiddleware(metricsSvc)
 
 	go func() {
 		log.Fatal(makeGRPCTransport(*grpcListenAddr, svc))

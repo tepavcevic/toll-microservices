@@ -49,7 +49,7 @@ func NewMetricsMiddleware(n Aggregator) *MetricsMiddleware {
 	}
 }
 
-func (m *MetricsMiddleware) AggregateDista(dist types.Distance) (err error) {
+func (m *MetricsMiddleware) AggregateDistance(dist types.Distance) (err error) {
 	defer func(started time.Time) {
 		m.reqLatencyAgg.Observe(float64(time.Since(started).Seconds()))
 		m.reqCounterAgg.Inc()
