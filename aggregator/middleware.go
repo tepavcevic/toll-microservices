@@ -13,6 +13,8 @@ type MetricsMiddleware struct {
 	next           Aggregator
 	reqCounterAgg  prometheus.Counter
 	reqCounterCalc prometheus.Counter
+	errCounterAgg  prometheus.Counter
+	errCounterCalc prometheus.Counter
 	reqLatencyAgg  prometheus.Histogram
 	reqLatencyCalc prometheus.Histogram
 }
@@ -30,6 +32,14 @@ func NewMetricsMiddleware(n Aggregator) *MetricsMiddleware {
 		Namespace: "calculator_request_counter",
 		Name:      "calculate",
 	})
+	errCounterAgg := promauto.NewCounter(prometheus.CounterOpts{
+		Namespace: "aggregator_error_counter",
+		Name:      "aggregate",
+	})
+	errCounterCalc := promauto.NewCounter(prometheus.CounterOpts{
+		Namespace: "calculator_error_counter",
+		Name:      "calculate",
+	})
 	reqLatencyAgg := promauto.NewHistogram(prometheus.HistogramOpts{
 		Namespace: "aggregator_request_latency",
 		Name:      "aggregate",
@@ -44,6 +54,8 @@ func NewMetricsMiddleware(n Aggregator) *MetricsMiddleware {
 		next:           n,
 		reqCounterAgg:  reqCounterAgg,
 		reqCounterCalc: reqCounterCalc,
+		errCounterAgg:  errCounterAgg,
+		errCounterCalc: errCounterCalc,
 		reqLatencyAgg:  reqLatencyAgg,
 		reqLatencyCalc: reqLatencyCalc,
 	}
@@ -53,6 +65,9 @@ func (m *MetricsMiddleware) AggregateDistance(dist types.Distance) (err error) {
 	defer func(started time.Time) {
 		m.reqLatencyAgg.Observe(float64(time.Since(started).Seconds()))
 		m.reqCounterAgg.Inc()
+		if err != nil {
+			m.errCounterAgg.Inc()
+		}
 	}(time.Now())
 
 	err = m.next.AggregateDistance(dist)
@@ -63,6 +78,9 @@ func (m *MetricsMiddleware) GetInvoice(obuID int) (invoice *types.Invoice, err e
 	defer func(started time.Time) {
 		m.reqLatencyCalc.Observe(float64(time.Since(started).Seconds()))
 		m.reqCounterCalc.Inc()
+		if err != nil {
+			m.errCounterCalc.Inc()
+		}
 	}(time.Now())
 
 	invoice, err = m.next.GetInvoice(obuID)
